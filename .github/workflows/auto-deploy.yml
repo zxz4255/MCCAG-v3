@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm install -g pnpm
-          pnpm config set onlyBuiltDependencies '["esbuild"]'
+          pnpm install --ignore-scripts=false
           pnpm install
 
       - name: Create deployment package
