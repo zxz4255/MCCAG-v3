@@ -21,17 +21,17 @@ jobs:
       - name: Install dependencies
         run: |
           npm install -g pnpm
-          pnpm install --ignore-scripts=false
-          pnpm install
+          pnpm install --dangerously-allow-all-builds
 
-      - name: Create deployment package
+      - name: Build and create deployment package
         run: |
           # 构建项目
           pnpm run build
 
-          # 创建部署目录
+          # 创建临时目录
           mkdir -p /tmp/deploy-temp
 
+          # 复制构建产物
           rsync -rlptgoD \
             --exclude='.git' \
             --exclude='.github' \
@@ -48,10 +48,11 @@ jobs:
           # 打包
           tar -czf website-deploy.tar.gz -C /tmp/deploy-temp .
 
-          # 查看内容确认
-          tar -tzf website-deploy.tar.gz | head
+          # 查看包内容
+          echo "Deployment package:"
+          tar -tzf website-deploy.tar.gz | head -50
 
-          # 清理临时文件
+          # 清理
           rm -rf /tmp/deploy-temp
 
       - name: Upload deployment package
@@ -77,3 +78,12 @@ jobs:
               set -e
 
               cd /www/wwwroot/Website
+
+              rm -f *.css *.js
+
+              tar -xzf /tmp/website-deploy.tar.gz
+
+              rm -f /tmp/website-deploy.tar.gz
+
+              echo 'Deploy completed!'
+            "
