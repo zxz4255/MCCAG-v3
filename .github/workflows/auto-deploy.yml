@@ -43,7 +43,7 @@ jobs:
             --exclude='README.md' \
             --exclude='package.json' \
             --exclude='pnpm-lock.yaml' \
-            dist/ /tmp/deploy-temp/
+            .dist/ /tmp/deploy-temp/
 
           # 创建压缩包
           tar -czf website-deploy.tar.gz -C /tmp/deploy-temp .
