@@ -6,6 +6,8 @@ export const skinData = Object.freeze({
     old: {
         rightLeg: { cropBox: [8, 40, 8, 24], mirror: false },
         leftLeg: { cropBox: [8, 40, 8, 24], mirror: true },
+        // 腿部侧面（侧视图使用）：右腿外侧面
+        legSide: { cropBox: [0, 40, 8, 24], mirror: false },
         rightArm: { cropBox: [86, 40, 6, 24], mirror: false },
         leftArm: { cropBox: [86, 40, 6, 24], mirror: true },
         torso: { cropBox: [40, 40, 16, 24], mirror: false },
@@ -18,6 +20,9 @@ export const skinData = Object.freeze({
         rightLegOuter: { cropBox: [8, 72, 8, 24], mirror: false },
         leftLeg: { cropBox: [40, 104, 8, 24], mirror: false },
         leftLegOuter: { cropBox: [8, 104, 8, 24], mirror: false },
+        // 腿部侧面（侧视图使用）：右腿外侧面（近侧）、左腿内侧面（远侧）
+        rightLegSide: { cropBox: [0, 40, 8, 24], mirror: false },
+        leftLegSide: { cropBox: [48, 104, 8, 24], mirror: false },
         rightArm: { cropBox: [86, 40, 6, 24], mirror: false },
         rightArmSide: { cropBox: [98, 40, 6, 24], mirror: false },
         rightArmOuter: { cropBox: [88, 72, 6, 24], mirror: false },
