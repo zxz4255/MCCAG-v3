@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,15 +19,19 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install -g pnpm && pnpm install
+        run: |
+          npm install -g pnpm
+          pnpm config set onlyBuiltDependencies '["esbuild"]'
+          pnpm install
 
       - name: Create deployment package
         run: |
-          # 运行构建命令
+          # 构建项目
           pnpm run build
-          
-          # 创建部署包
+
+          # 创建部署目录
           mkdir -p /tmp/deploy-temp
+
           rsync -rlptgoD \
             --exclude='.git' \
             --exclude='.github' \
@@ -40,9 +45,21 @@ jobs:
             --exclude='pnpm-lock.yaml' \
             .dist/ /tmp/deploy-temp/
 
+          # 打包
           tar -czf website-deploy.tar.gz -C /tmp/deploy-temp .
+
+          # 查看内容确认
           tar -tzf website-deploy.tar.gz | head
+
+          # 清理临时文件
           rm -rf /tmp/deploy-temp
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-deploy
+          path: website-deploy.tar.gz
+          retention-days: 30
 
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.9.0
@@ -51,13 +68,12 @@ jobs:
 
       - name: Deploy to server
         run: |
-          scp -o StrictHostKeyChecking=no website-deploy.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
+          scp -o StrictHostKeyChecking=no \
+            website-deploy.tar.gz \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
 
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-            set -e
-            cd /www/wwwroot/Website &&
-            rm *.css *.js &&
-            tar -xzf /tmp/website-deploy.tar.gz --strip-components=0 &&
-            rm /tmp/website-deploy.tar.gz &&
-            echo 'Deploy completed!'
-          "
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+              set -e
+
+              cd /www/wwwroot/Website
