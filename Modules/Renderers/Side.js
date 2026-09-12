@@ -1,5 +1,5 @@
 // 渲染模块
-import { sideOperationData } from './Data.js';
+import { sideOperationData, skinData } from './Data.js';
 import { preprecessSkinImage, processImage } from './Image.js';
 
 
@@ -78,10 +78,12 @@ export function renderAvatar(skinImage, texture) {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     canvas.width = 1000;
-    canvas.height = 1000;
+    // 加高画布以容纳双腿（原构图底部到 1120，腿高 480，底部到 1600）
+    canvas.height = 1700;
 
     // 确定皮肤尺寸
     const skinSize = [skinImage.width, skinImage.height];
+    const skinVersion = (skinSize[0] === 64 && skinSize[1] === 32) ? 'old' : 'new';
 
     skinImage = preprecessSkinImage(skinImage);
     // 获取操作列表
@@ -92,6 +94,17 @@ export function renderAvatar(skinImage, texture) {
     // 清空部分像素点
     context.clearRect(340, 640, 40, 40);
     context.clearRect(620, 640, 40, 40);
+
+    // ===== 渲染双腿 =====
+    // 角色面向左（展示右侧），近侧为右腿外侧面，远侧为左腿内侧面
+    const nearLeg = skinVersion === 'new' ? skinData.new.rightLegSide : skinData.old.legSide;
+    const farLeg = skinVersion === 'new' ? skinData.new.leftLegSide : skinData.old.legSide;
+    // 远侧腿（后画近侧腿遮挡重叠部分）
+    operate(context, skinImage, farLeg.cropBox, farLeg.mirror, 20, [460, 1120]);
+    // 远侧腿压暗，营造前后纵深感
+    darkenAreasBatch(context, [[460, 1120, 160, 480]], 0.7);
+    // 近侧腿
+    operate(context, skinImage, nearLeg.cropBox, nearLeg.mirror, 20, [380, 1120]);
 
     // 高性能颜色加深处理
     if (texture) {
@@ -116,6 +129,8 @@ export function renderAvatar(skinImage, texture) {
     finalContext.shadowOffsetX = 0;
     finalContext.shadowOffsetY = 0;
     finalContext.shadowBlur = 50;
-    finalContext.drawImage(processImage(canvas, 0, 0, 1000, 1000, 1200, 1200), 100, 200, 1000, 1000, 0, 0, 1000, 1000);
+    // 人物整体包围盒：x 300~700（头侧到手臂），y 320~1600（头顶到脚底），即 400x1280
+    // 按 0.75 等比缩放到 300x960，居中放置（上下留 20 像素边距）
+    finalContext.drawImage(processImage(canvas, 300, 320, 400, 1280, 300, 960, false, true), 350, 20);
     return finalCanvas;
 }
